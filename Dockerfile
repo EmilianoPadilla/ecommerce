@@ -16,6 +16,7 @@ COPY . .
 EXPOSE 8000
 #Exposes port 8000 for the application to listen on
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--reload"] #this is for local development
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"] #this is for production or cloud development
 #Specifies the command to run the application using uvicorn. It runs the main:app module, binds to all available network interfaces (0.0.0.0) 
 # and enables auto-reload for development purposes.
