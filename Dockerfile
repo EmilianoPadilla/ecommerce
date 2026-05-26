@@ -17,7 +17,7 @@ EXPOSE 8000
 #Exposes port 8000 for the application to listen on
 
 #this is for production or cloud development
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"] 
+CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port $PORT"]
 
 #this is for local development
 #CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--reload"] 
