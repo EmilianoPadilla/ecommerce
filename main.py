@@ -1,15 +1,15 @@
 from fastapi import FastAPI
-from app.routers import users, orders, orderitems, products, categories, auth
+from src.routers import users, orders, orderitems, products, categories, auth
 
-from app.database.database import engine
-from app.models.base import Base
+from src.database.database import engine
+from src.models.base import Base
 
-from app.models.users import UserDB
-from app.models.orders import OrderDB
-from app.models.orderitems import OrderItemDB
-from app.models.products import ProductDB
-from app.models.categories import CategoryDB
-from app.routers import auth
+from src.models.users import UserDB
+from src.models.orders import OrderDB
+from src.models.orderitems import OrderItemDB
+from src.models.products import ProductDB
+from src.models.categories import CategoryDB
+from src.routers import auth
 
 
 Base.metadata.create_all(bind=engine)
