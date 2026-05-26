@@ -4,6 +4,8 @@ FROM python:3.13-slim
 WORKDIR /app
 #Sets the working directory to /app, this is a folder within docker, not within my project.
 
+ENV PYTHONPATH=/app
+
 COPY requirements.txt .
 #Copies the requirements.txt file from the current directory of my project to the /app directory in the container of docker.
 
