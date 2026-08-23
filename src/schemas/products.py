@@ -9,6 +9,7 @@ class ProductCreate(BaseModel):
     price: int
     stock: int
     category_id: int
+    image_url: Optional[str] = None
 
 
 class ProductUpdate(BaseModel):
@@ -16,6 +17,7 @@ class ProductUpdate(BaseModel):
     price: Optional[int] = None
     stock: Optional[int] = None
     category_id: Optional[int] = None
+    image_url: Optional[str] = None
 
 
 class ProductResponse(BaseModel):
@@ -23,5 +25,6 @@ class ProductResponse(BaseModel):
     name: str
     price: int
     stock: int
+    image_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
