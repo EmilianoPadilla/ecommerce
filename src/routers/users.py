@@ -6,9 +6,14 @@ from src.models.users import UserDB
 from src.schemas.users import UserCreate, UserUpdate, UserResponse
 from src.database.database import get_db
 from src.auth.hashing import hash_password
+from src.auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
+
+@router.get("/me", response_model=UserResponse)
+def get_me(current_user: UserDB = Depends(get_current_user)):
+    return current_user
 
 ##################   GET ALL   #########################
 
