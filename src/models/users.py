@@ -11,5 +11,6 @@ class UserDB(Base):
     username = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
+    cart_items = relationship("CartItemDB", back_populates="user")
 
     orders = relationship("OrderDB", back_populates="user")

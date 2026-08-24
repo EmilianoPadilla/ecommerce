@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.routers import users, orders, orderitems, products, categories, auth
+from src.routers import cart
 
 from src.database.database import engine
 from src.models.base import Base
@@ -10,6 +11,7 @@ from src.models.orders import OrderDB
 from src.models.orderitems import OrderItemDB
 from src.models.products import ProductDB
 from src.models.categories import CategoryDB
+from src.models.cart import CartItemDB
 from src.routers import auth
 
 
@@ -39,3 +41,4 @@ app.include_router(orderitems.router)
 app.include_router(products.router)
 app.include_router(categories.router)
 app.include_router(auth.router)
+app.include_router(cart.router)

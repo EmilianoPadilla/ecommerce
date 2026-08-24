@@ -13,7 +13,8 @@ class ProductDB(Base):
     price = Column(Integer)
     stock = Column(Integer)
     image_url = Column(String, nullable=True)  # optional image URL
-
+    cart_items = relationship("CartItemDB", back_populates="product")
+    
     category_id = Column(Integer, ForeignKey("categories.id"))
     category = relationship("CategoryDB", back_populates="products")
 
