@@ -1,8 +1,8 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
-
 ##################   PRODUCT   #########################
+
 
 class ProductCreate(BaseModel):
     name: str
@@ -26,5 +26,6 @@ class ProductResponse(BaseModel):
     price: int
     stock: int
     image_url: Optional[str] = None
+    owner_username: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

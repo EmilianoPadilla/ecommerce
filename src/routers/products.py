@@ -3,14 +3,33 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from src.models.products import ProductDB
+from src.models.users import UserDB
 from src.schemas.products import (
     ProductCreate,
     ProductUpdate,
     ProductResponse
 )
 from src.database.database import get_db
+from src.auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/products", tags=["Products"])
+
+
+def product_to_response(product: ProductDB, db: Session) -> ProductResponse:
+    owner_username = None
+    if product.owner_id:
+        owner = db.query(UserDB).filter(UserDB.id == product.owner_id).first()
+        if owner:
+            owner_username = owner.username
+
+    return ProductResponse(
+        id=product.id,
+        name=product.name,
+        price=product.price,
+        stock=product.stock,
+        image_url=product.image_url,
+        owner_username=owner_username
+    )
 
 
 ##################   GET ALL   #########################
@@ -28,7 +47,7 @@ def get_products(
         .offset(offset)
         .all()
     )
-    return products
+    return [product_to_response(p, db) for p in products]
 
 
 ##################   GET ONE   #########################
@@ -50,27 +69,31 @@ def get_product(
             detail="Product not found!"
         )
 
-    return product
+    return product_to_response(product, db)
 
 
 ##################   POST   #########################
 
-@router.post("/", 
+@router.post("/",
     response_model=ProductResponse,
     status_code=status.HTTP_201_CREATED
     )
 def create_product(
     item: ProductCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user)  # must be logged in
 ):
     try:
-        new_product = ProductDB(**item.model_dump())
+        product_data = item.model_dump()
+        product_data["owner_id"] = current_user.id  # set owner automatically
+
+        new_product = ProductDB(**product_data)
 
         db.add(new_product)
         db.commit()
         db.refresh(new_product)
 
-        return new_product
+        return product_to_response(new_product, db)
 
     except IntegrityError:
         db.rollback()
@@ -88,14 +111,14 @@ def create_product(
             detail="Internal server error"
         )
 
-
 ##################   PUT   #########################
 
 @router.put("/{product_id}", response_model=ProductResponse)
 def update_product(
     product_id: int,
     item: ProductCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user)
 ):
     try:
         product = (
@@ -110,6 +133,12 @@ def update_product(
                 detail="Product not found!"
             )
 
+        if product.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="You can only update your own products!"
+            )
+
         update_data = item.model_dump()
 
         for key, value in update_data.items():
@@ -118,7 +147,7 @@ def update_product(
         db.commit()
         db.refresh(product)
 
-        return product
+        return product_to_response(product, db)
 
     except IntegrityError:
         db.rollback()
@@ -144,7 +173,8 @@ def update_product(
 def update_product_partial(
     product_id: int,
     item: ProductUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user)
 ):
     try:
         product = (
@@ -159,6 +189,12 @@ def update_product_partial(
                 detail="Product not found!"
             )
 
+        if product.owner_id and product.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="You can only update your own products!"
+            )
+
         update_data = item.model_dump(exclude_unset=True)
 
         for key, value in update_data.items():
@@ -167,7 +203,7 @@ def update_product_partial(
         db.commit()
         db.refresh(product)
 
-        return product
+        return product_to_response(product, db)
 
     except IntegrityError:
         db.rollback()
@@ -186,13 +222,13 @@ def update_product_partial(
             detail="Internal server error"
         )
 
-
 ##################   DELETE   #########################
 
 @router.delete("/{product_id}")
 def delete_product(
     product_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user)
 ):
     try:
         product = (
@@ -207,6 +243,12 @@ def delete_product(
                 detail="Product not found!"
             )
 
+        if product.owner_id and product.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="You can only delete your own products!"
+            )
+
         db.delete(product)
         db.commit()
 
@@ -219,10 +261,9 @@ def delete_product(
             detail="Invalid foreign key or duplicate value"
         )
 
-
     except HTTPException:
         raise
-    
+
     except Exception:
         db.rollback()
         raise HTTPException(
