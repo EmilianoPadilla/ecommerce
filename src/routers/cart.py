@@ -18,7 +18,7 @@ def get_cart(
 ):
     cart_items = db.query(CartItemDB).filter(
         CartItemDB.user_id == current_user.id
-    ).all()
+    ).order_by(CartItemDB.id).all()  # ← add order_by(CartItemDB.id)
 
     result = []
     for item in cart_items:
