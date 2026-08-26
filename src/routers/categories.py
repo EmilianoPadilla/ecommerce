@@ -10,6 +10,9 @@ from src.schemas.categories import (
 )
 from src.database.database import get_db
 
+from src.models.products import ProductDB
+from src.schemas.products import ProductResponse
+
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
 
@@ -52,6 +55,47 @@ def get_category(
 
     return category
 
+##################   GET PRODUCTS BY CATEGORY   #########################
+
+@router.get("/{category_id}/products", response_model=list[ProductResponse])
+def get_products_by_category(
+    category_id: int,
+    limit: int = 10,
+    offset: int = 0,
+    db: Session = Depends(get_db)
+):
+    category = db.query(CategoryDB).filter(CategoryDB.id == category_id).first()
+    
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found!")
+    
+    products = (
+        db.query(ProductDB)
+        .filter(ProductDB.category_id == category_id)
+        .order_by(ProductDB.id)
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
+    
+    from src.models.users import UserDB
+    result = []
+    for product in products:
+        owner_username = None
+        if product.owner_id:
+            owner = db.query(UserDB).filter(UserDB.id == product.owner_id).first()
+            if owner:
+                owner_username = owner.username
+        result.append(ProductResponse(
+            id=product.id,
+            name=product.name,
+            price=product.price,
+            stock=product.stock,
+            image_url=product.image_url,
+            owner_username=owner_username
+        ))
+    
+    return result
 
 ##################   POST   #########################
 
